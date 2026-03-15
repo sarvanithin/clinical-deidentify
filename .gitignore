@@ -1,0 +1,7 @@
+venv/
+.hf_cache/
+__pycache__/
+*.jsonl
+.pytest_cache/
+.DS_Store
+.env

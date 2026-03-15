@@ -1,0 +1,8 @@
+venv/
+.hf_cache/
+__pycache__/
+*.jsonl
+eval/
+tests/
+.pytest_cache/
+.git/
