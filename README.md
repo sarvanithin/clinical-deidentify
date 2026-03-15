@@ -13,15 +13,16 @@ Fast, regex + transformer hybrid PHI removal for clinical text and documents. Pr
 - **HIPAA Compliant**: Docker-native service ensuring all data stays on your infrastructure.
 - **Active Learning**: Built-in feedback loop for clinical correction storage.
 
-## Quick Start (Docker)
+## 🚀 Quick Start (Docker)
 1. **Build**:
    ```bash
    docker build -t clinical-deidentify .
    ```
 2. **Run**:
    ```bash
-   docker run -p 8000:8000 clinical-deidentify
+   docker run -d -p 8001:8000 --name clinical-deid-service clinical-deidentify
    ```
+   *Dashboard available at: [http://localhost:8001](http://localhost:8001)*
 
 ## Local Installation
 1. **Clone & Setup**:
