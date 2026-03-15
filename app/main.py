@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+import fitz  # PyMuPDF
 from .models import DeidRequest, DeidResponse, BatchDeidRequest, BatchDeidResponse, FeedbackRequest
 from .pipeline.hybrid import DeidPipeline
 import json
@@ -59,6 +60,33 @@ async def deidentify_text(request: DeidRequest):
         result = pipeline.deidentify(request.text, mode=request.mode)
         return result
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/deidentify/file", response_model=DeidResponse)
+async def deidentify_file(file: UploadFile = File(...)):
+    try:
+        content = await file.read()
+        filename = file.filename.lower()
+        
+        if filename.endswith(".pdf"):
+            # Extract text from PDF
+            doc = fitz.open(stream=content, filetype="pdf")
+            text = ""
+            for page in doc:
+                text += page.get_text()
+            doc.close()
+        elif filename.endswith(".txt"):
+            text = content.decode("utf-8")
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file type. Please upload .pdf or .txt")
+
+        if not text.strip():
+            raise HTTPException(status_code=400, detail="File is empty or no text could be extracted.")
+
+        result = pipeline.deidentify(text)
+        return result
+    except Exception as e:
+        logger.error(f"Error processing file {file.filename}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/batch", response_model=BatchDeidResponse)

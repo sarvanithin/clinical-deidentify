@@ -3,18 +3,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const apiStatus = document.getElementById('api-status');
     const statusDot = apiStatus.querySelector('.status-dot');
     const statusText = apiStatus.querySelector('.status-text');
-    
+
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const browseBtn = document.getElementById('browse-btn');
     const textInput = document.getElementById('text-input');
-    
+
     const processBtn = document.getElementById('process-btn');
     const clearBtn = document.getElementById('clear-btn');
     const resultsPanel = document.getElementById('results-panel');
     const outputText = document.getElementById('output-text');
     const legend = document.getElementById('legend');
     const copyBtn = document.getElementById('copy-btn');
+
+    let currentFile = null;
 
     // Init
     checkApiStatus();
@@ -57,21 +59,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function handleFile(file) {
-        if (!file.name.endsWith('.txt')) {
-            alert('Please upload a .txt file.');
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext !== 'txt' && ext !== 'pdf') {
+            alert('Please upload a .txt or .pdf file.');
             return;
         }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            textInput.value = e.target.result;
-        };
-        reader.readAsText(file);
+
+        currentFile = file;
+        textInput.value = `File selected: ${file.name}`;
+        textInput.disabled = true;
+
+        // Show immediate indicator for PDF
+        if (ext === 'pdf') {
+            textInput.value += "\nNote: Text will be extracted upon processing.";
+        } else {
+            // Pre-read txt files for preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                textInput.value = e.target.result;
+                textInput.disabled = false;
+            };
+            reader.readAsText(file);
+        }
     }
 
     // Processing
     processBtn.addEventListener('click', async () => {
         const text = textInput.value.trim();
-        if (!text) return;
+        if (!text && !currentFile) return;
 
         // UI State
         processBtn.disabled = true;
@@ -79,18 +94,33 @@ document.addEventListener('DOMContentLoaded', () => {
         processBtn.querySelector('.loader').hidden = false;
 
         try {
-            const response = await fetch('/deidentify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text })
-            });
+            let response;
+            if (currentFile && (currentFile.name.endsWith('.pdf') || textInput.disabled)) {
+                // Upload file
+                const formData = new FormData();
+                formData.append('file', currentFile);
+                response = await fetch('/deidentify/file', {
+                    method: 'POST',
+                    body: formData
+                });
+            } else {
+                // Process text
+                response = await fetch('/deidentify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+            }
 
-            if (!response.ok) throw new Error('API Error');
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.detail || 'API Error');
+            }
 
             const result = await response.json();
             displayResults(result);
         } catch (error) {
-            alert('Failed to process text: ' + error.message);
+            alert('Failed to process: ' + error.message);
         } finally {
             processBtn.disabled = false;
             processBtn.querySelector('.btn-text').textContent = 'De-identify PHI';
@@ -100,11 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function displayResults(data) {
         resultsPanel.hidden = false;
-        
+
         // Render de-identified text with highlights
         // To make it interactive, we replace tokens with styled spans
         let displayHtml = data.deidentified;
-        
+
         // Gather unique labels for the legend
         const labels = new Set();
         data.entities.forEach(ent => labels.add(ent.label));
@@ -125,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const regex = new RegExp(`(${protectedLabels})`, 'g');
             displayHtml = displayHtml.replace(regex, '<span class="entity-highlight">$1</span>');
         }
-        
+
         outputText.innerHTML = displayHtml;
         resultsPanel.scrollIntoView({ behavior: 'smooth' });
     }
@@ -134,6 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
         textInput.value = '';
         resultsPanel.hidden = true;
         fileInput.value = '';
+        currentFile = null;
+        textInput.disabled = false;
     });
 
     copyBtn.addEventListener('click', () => {
