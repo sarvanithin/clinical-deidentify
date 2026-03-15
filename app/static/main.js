@@ -15,8 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const outputText = document.getElementById('output-text');
     const legend = document.getElementById('legend');
     const copyBtn = document.getElementById('copy-btn');
+    const downloadBtn = document.getElementById('download-btn');
 
     let currentFile = null;
+    let currentDeidentifiedText = '';
 
     // Init
     checkApiStatus();
@@ -60,8 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleFile(file) {
         const ext = file.name.split('.').pop().toLowerCase();
-        if (ext !== 'txt' && ext !== 'pdf') {
-            alert('Please upload a .txt or .pdf file.');
+        if (ext !== 'txt' && ext !== 'pdf' && ext !== 'docx') {
+            alert('Please upload a .txt, .pdf, or .docx file.');
             return;
         }
 
@@ -157,6 +159,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         outputText.innerHTML = displayHtml;
+
+        // Prepare for download
+        currentDeidentifiedText = data.deidentified;
+        downloadBtn.disabled = false;
     }
 
     clearBtn.addEventListener('click', () => {
@@ -172,18 +178,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalIcon = copyBtn.innerHTML;
         copyBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="color:var(--success)"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
         setTimeout(() => copyBtn.innerHTML = originalIcon, 2000);
-        // Download logic
-        downloadBtn.addEventListener('click', () => {
-            if (!currentDeidentifiedText) return;
-
-            const blob = new Blob([currentDeidentifiedText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `deidentified_${new Date().getTime()}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
     });
+    // Download logic
+    downloadBtn.addEventListener('click', () => {
+        if (!currentDeidentifiedText) return;
+
+        const blob = new Blob([currentDeidentifiedText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `deidentified_${new Date().getTime()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+});

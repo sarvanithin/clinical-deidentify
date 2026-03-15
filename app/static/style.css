@@ -139,10 +139,17 @@ main {
     overflow: hidden;
 }
 
-.panel-header h2 {
-    font-size: 1rem;
-    font-weight: 600;
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 4px;
+}
+
+.output-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
 }
 
 .helper-text {

@@ -17,7 +17,8 @@ Fast, regex + transformer hybrid PHI removal for clinical text and documents. Pr
 
 ## 🚀 Features
 - **Hybrid Pipeline**: Combines deterministic regex for structured PHI (dates, IDs, phones) with state-of-the-art transformers for contextual PHI (patient names, locations).
-- **Full Document Support**: De-identify **PDFs** and **TXT** files with a unified interface.
+- **Expanded Document Support**: De-identify **PDFs**, **Word (.docx)**, and **TXT** files with a unified interface.
+- **Download Feature**: Instantly download de-identified results as a `.txt` file for safe storage.
 - **Premium Dashboard**: A sleek, dark-mode web UI for real-time de-identification and file uploads.
 - **HIPAA Compliant**: Docker-native service ensuring all data stays on your infrastructure.
 - **Active Learning**: Built-in feedback loop for clinical correction storage.
