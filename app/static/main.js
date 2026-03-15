@@ -157,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         outputText.innerHTML = displayHtml;
-        resultsPanel.scrollIntoView({ behavior: 'smooth' });
     }
 
     clearBtn.addEventListener('click', () => {
