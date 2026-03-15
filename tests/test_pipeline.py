@@ -29,6 +29,19 @@ def test_regex_mrn():
     assert len(results) == 2
     assert all(r["label"] == "MRN" for r in results)
 
+def test_regex_edge_cases():
+    detector = RegexDetector()
+    # Edge cases: serial numbers and phone with leading parenthesis
+    text = "SN: XYZ-9000-SER, Phone: (555) 010-9988"
+    results = detector.detect(text)
+    labels = {r["label"]: r["text"] for r in results}
+    
+    assert "DEVICE_ID" in labels
+    assert labels["DEVICE_ID"] == "SN: XYZ-9000-SER"
+    
+    assert "PHONE" in labels
+    assert labels["PHONE"] == "(555) 010-9988"
+
 def test_hybrid_merging_overlaps():
     # Mocking transformer output for unit test
     class MockTransformer:

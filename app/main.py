@@ -1,4 +1,6 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from .models import DeidRequest, DeidResponse, BatchDeidRequest, BatchDeidResponse, FeedbackRequest
 from .pipeline.hybrid import DeidPipeline
 import json
@@ -31,9 +33,12 @@ except Exception as e:
     logger.error(f"Failed to initialize pipeline: {str(e)}")
     pipeline = None # Handle at endpoint level
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 @app.get("/")
 async def root():
-    return {"message": "Clinical-Deidentify API is running. Use /docs for documentation."}
+    return FileResponse("app/static/index.html")
 
 @app.get("/health")
 async def health_check():

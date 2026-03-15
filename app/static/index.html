@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical De-identify | Secure PHI Removal</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <div class="glass-container">
+        <header>
+            <div class="logo-section">
+                <div class="pulse-icon"></div>
+                <h1>Clinical De-identify</h1>
+            </div>
+            <div class="status-bar" id="api-status">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting to Backend...</span>
+            </div>
+        </header>
+
+        <main>
+            <section class="input-panel">
+                <div class="panel-header">
+                    <h2>Patient Note Input</h2>
+                    <span class="helper-text">Enter clinical text or upload a .txt file</span>
+                </div>
+                
+                <div class="upload-zone" id="drop-zone">
+                    <p>Drag & drop clinical record here</p>
+                    <input type="file" id="file-input" hidden accept=".txt">
+                    <button class="secondary-btn" id="browse-btn">Browse Files</button>
+                </div>
+
+                <textarea id="text-input" placeholder="Paste your clinical note here... (e.g., Patient John Doe, DOB: 01/01/1980)"></textarea>
+                
+                <div class="action-bar">
+                    <button class="primary-btn" id="process-btn">
+                        <span class="btn-text">De-identify PHI</span>
+                        <div class="loader" hidden></div>
+                    </button>
+                    <button class="text-btn" id="clear-btn">Clear All</button>
+                </div>
+            </section>
+
+            <section class="output-panel" id="results-panel" hidden>
+                <div class="panel-header">
+                    <h2>De-identified Output</h2>
+                    <div class="output-actions">
+                        <button class="icon-btn" id="copy-btn" title="Copy results">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="diff-view">
+                    <div class="result-box masked" id="output-text"></div>
+                </div>
+
+                <div class="entity-legend" id="legend">
+                    <!-- Entities will be listed here -->
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>HIPAA Safe Harbor Compliant | Powered by BioClinicalBERT & Regex-Hybrid</p>
+            <div class="links">
+                <a href="/docs" target="_blank">API Reference</a>
+                <a href="https://github.com/sarvanithin/clinical-deidentify" target="_blank">GitHub</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
