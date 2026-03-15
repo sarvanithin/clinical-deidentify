@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import fitz  # PyMuPDF
+import docx  # python-docx
 from .models import DeidRequest, DeidResponse, BatchDeidRequest, BatchDeidResponse, FeedbackRequest
 from .pipeline.hybrid import DeidPipeline
 import json
@@ -87,8 +88,13 @@ async def deidentify_file(file: UploadFile = File(...)):
             doc.close()
         elif filename.endswith(".txt"):
             text = content.decode("utf-8")
+        elif filename.endswith(".docx"):
+            # Extract text from Word document
+            from io import BytesIO
+            doc = docx.Document(BytesIO(content))
+            text = "\n".join([para.text for para in doc.paragraphs])
         else:
-            raise HTTPException(status_code=400, detail="Unsupported file type. Please upload .pdf or .txt")
+            raise HTTPException(status_code=400, detail="Unsupported file type. Please upload .pdf, .txt, or .docx")
 
         if not text.strip():
             raise HTTPException(status_code=400, detail="File is empty or no text could be extracted.")
