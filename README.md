@@ -1,12 +1,17 @@
-# Clinical-Deidentify
+# 🏥 Clinical-Deidentify: Secure PHI Removal
 
-Fast, regex + transformer hybrid PHI removal for clinical text.
+[![CI](https://github.com/sarvanithin/clinical-deidentify/actions/workflows/ci.yml/badge.svg)](https://github.com/sarvanithin/clinical-deidentify/actions)
 
-## Features
+Fast, regex + transformer hybrid PHI removal for clinical text and documents. Protect patient privacy with clinical-grade accuracy.
+
+![UI Mockup](/Users/nithinsarva/.gemini/antigravity/brain/b50698cd-8087-453a-be22-ce45586e1767/ui_demo_mockup_1773587336810.png)
+
+## 🚀 Features
 - **Hybrid Pipeline**: Combines deterministic regex for structured PHI (dates, IDs, phones) with state-of-the-art transformers for contextual PHI (patient names, locations).
-- **FastAPI-served**: Lightweight and easy to integrate into clinical workflows.
-- **Docker-ready**: Fully local deployment, ensuring HIPAA compliance by keeping data on-premises.
-- **Active Learning**: Built-in `/feedback` endpoint for collecting manual corrections.
+- **Full Document Support**: De-identify **PDFs** and **TXT** files with a unified interface.
+- **Premium Dashboard**: A sleek, dark-mode web UI for real-time de-identification and file uploads.
+- **HIPAA Compliant**: Docker-native service ensuring all data stays on your infrastructure.
+- **Active Learning**: Built-in feedback loop for clinical correction storage.
 
 ## Quick Start (Docker)
 1. **Build**:
