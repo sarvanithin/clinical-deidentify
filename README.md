@@ -1,3 +1,12 @@
+---
+title: Clinical Deidentify
+emoji: 🏥
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 8000
+---
+
 # 🏥 Clinical-Deidentify: Secure PHI Removal
 
 [![CI](https://github.com/sarvanithin/clinical-deidentify/actions/workflows/ci.yml/badge.svg)](https://github.com/sarvanithin/clinical-deidentify/actions)
