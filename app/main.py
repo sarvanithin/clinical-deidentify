@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import fitz  # PyMuPDF
 from .models import DeidRequest, DeidResponse, BatchDeidRequest, BatchDeidResponse, FeedbackRequest
 from .pipeline.hybrid import DeidPipeline
@@ -22,7 +23,16 @@ logger = logging.getLogger("clinical-deidentify")
 app = FastAPI(
     title="Clinical-Deidentify API",
     description="Fast, hybrid PHI removal for clinical text",
-    version="0.1.1" # Incremented for robustness release
+    version="0.1.2" # Hardened for public deployment
+)
+
+# Enable CORS for public access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Initialize pipeline lazily or at startup
