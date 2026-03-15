@@ -23,8 +23,10 @@ jobs:
         pip install -r requirements.txt
         
     - name: Run Tests
+      env:
+        PYTHONPATH: .
       run: |
-        pytest
+        python -m pytest
         
     - name: Build Docker Image
       run: |
