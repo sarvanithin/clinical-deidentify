@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: clinical-deidentify
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: MPP_SECRET_KEY
+        value: clinical-deid-secret
