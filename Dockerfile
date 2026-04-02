@@ -12,12 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install CPU-only torch first to avoid pulling 4GB CUDA packages
-RUN pip install --no-cache-dir torch==2.2.0+cpu --index-url https://download.pytorch.org/whl/cpu
-
-# Install remaining python dependencies
+# Install all python dependencies
 COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt --no-deps || pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Force CPU-only torch to override any CUDA packages pulled by transformers
+RUN pip install --no-cache-dir torch==2.2.0+cpu --index-url https://download.pytorch.org/whl/cpu --force-reinstall
 
 # Copy application code
 COPY . /app/
