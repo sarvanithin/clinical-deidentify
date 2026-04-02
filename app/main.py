@@ -11,6 +11,8 @@ import json
 import os
 import logging
 import time
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 # Redirect HF Cache to a writable directory
 os.environ["HF_HOME"] = os.path.join(os.getcwd(), ".hf_cache")
@@ -38,14 +40,27 @@ app.add_middleware(
 )
 app.add_middleware(X402Middleware)
 
-# Initialize pipeline lazily or at startup
-try:
-    logger.info("Initializing DeidPipeline...")
-    pipeline = DeidPipeline()
-    logger.info("Pipeline initialized successfully.")
-except Exception as e:
-    logger.error(f"Failed to initialize pipeline: {str(e)}")
-    pipeline = None # Handle at endpoint level
+# Pipeline loaded in background after startup so healthcheck responds immediately
+pipeline = None
+_pipeline_loading = False
+
+def _load_pipeline():
+    global pipeline, _pipeline_loading
+    _pipeline_loading = True
+    try:
+        logger.info("Initializing DeidPipeline in background...")
+        pipeline = DeidPipeline()
+        logger.info("Pipeline initialized successfully.")
+    except Exception as e:
+        logger.error(f"Failed to initialize pipeline: {str(e)}")
+    finally:
+        _pipeline_loading = False
+
+@app.on_event("startup")
+async def startup_event():
+    loop = asyncio.get_event_loop()
+    executor = ThreadPoolExecutor(max_workers=1)
+    loop.run_in_executor(executor, _load_pipeline)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -57,9 +72,12 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Diagnostic endpoint for Docker/K8s."""
-    status = "healthy"
     model_loaded = pipeline is not None
-    if not model_loaded:
+    if model_loaded:
+        status = "healthy"
+    elif _pipeline_loading:
+        status = "loading"
+    else:
         status = "unhealthy"
     return {
         "status": status,
