@@ -52,7 +52,9 @@ def _load_pipeline():
         pipeline = DeidPipeline()
         logger.info("Pipeline initialized successfully.")
     except Exception as e:
+        import traceback
         logger.error(f"Failed to initialize pipeline: {str(e)}")
+        logger.error(traceback.format_exc())
     finally:
         _pipeline_loading = False
 

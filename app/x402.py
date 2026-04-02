@@ -29,6 +29,9 @@ FREE_PATHS: set[str] = {
     "/redoc",
     "/openapi.json",
     "/feedback",
+    "/deidentify",
+    "/deidentify/file",
+    "/batch",
 }
 
 _SECRET = os.getenv("MPP_SECRET_KEY", "deid-dev-secret")
