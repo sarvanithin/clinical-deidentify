@@ -12,9 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies First for caching
+# Install CPU-only torch first to avoid pulling 4GB CUDA packages
+RUN pip install --no-cache-dir torch==2.2.0+cpu --index-url https://download.pytorch.org/whl/cpu
+
+# Install remaining python dependencies
 COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt --no-deps || pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . /app/
