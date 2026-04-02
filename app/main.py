@@ -87,6 +87,8 @@ async def health_check():
 
 @app.post("/deidentify", response_model=DeidResponse)
 async def deidentify_text(request: DeidRequest):
+    if pipeline is None:
+        raise HTTPException(status_code=503, detail="Model is still loading, please retry in a moment.")
     try:
         result = pipeline.deidentify(request.text, mode=request.mode)
         return result
@@ -95,6 +97,8 @@ async def deidentify_text(request: DeidRequest):
 
 @app.post("/deidentify/file", response_model=DeidResponse)
 async def deidentify_file(file: UploadFile = File(...)):
+    if pipeline is None:
+        raise HTTPException(status_code=503, detail="Model is still loading, please retry in a moment.")
     try:
         content = await file.read()
         filename = file.filename.lower()
@@ -127,6 +131,8 @@ async def deidentify_file(file: UploadFile = File(...)):
 
 @app.post("/batch", response_model=BatchDeidResponse)
 async def deidentify_batch(request: BatchDeidRequest):
+    if pipeline is None:
+        raise HTTPException(status_code=503, detail="Model is still loading, please retry in a moment.")
     results = []
     for text in request.texts:
         try:
