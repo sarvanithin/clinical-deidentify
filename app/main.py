@@ -48,13 +48,32 @@ def _load_pipeline():
     global pipeline, _pipeline_loading
     _pipeline_loading = True
     try:
-        logger.info("Initializing DeidPipeline in background...")
-        pipeline = DeidPipeline()
-        logger.info("Pipeline initialized successfully.")
+        logger.info("Initializing DeidPipeline (regex-only, low memory)...")
+        from app.pipeline.regex_rules import RegexDetector
+
+        class _RegexPipeline:
+            def __init__(self):
+                self._rx = RegexDetector()
+            def deidentify(self, text, mode="mask"):
+                entities = self._rx.detect(text)
+                for e in entities:
+                    e["confidence"] = 1.0
+                out = text
+                for e in sorted(entities, key=lambda x: x["start"], reverse=True):
+                    if mode == "mask":
+                        out = out[:e["start"]] + f"[{e['label']}]" + out[e["end"]:]
+                return {"original": text, "deidentified": out, "entities": entities}
+
+        pipeline = _RegexPipeline()
+        logger.info("Regex pipeline ready. Attempting to load BERT transformer...")
+
+        try:
+            pipeline = DeidPipeline()
+            logger.info("Full transformer pipeline loaded successfully.")
+        except Exception as e2:
+            logger.warning(f"Transformer load failed (OOM?), using regex-only: {e2}")
     except Exception as e:
-        import traceback
-        logger.error(f"Failed to initialize pipeline: {str(e)}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Pipeline init failed: {e}")
     finally:
         _pipeline_loading = False
 
