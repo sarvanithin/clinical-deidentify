@@ -1,8 +1,14 @@
 """
 x402 / MPP payment middleware for Clinical De-identification API.
 
-Free paths:  /, /health, /docs, /redoc, /openapi.json, /static/*
-Paid paths:  /deidentify ($0.01), /deidentify/file ($0.01), /batch ($0.02)
+Always free:    /, /health, /docs, /redoc, /openapi.json, /feedback, /static/*
+Browser free:   requests with a browser User-Agent or onrender.com origin
+                (so the hosted UI never hits the payment gate)
+Paid (API):     /deidentify ($0.01), /deidentify/file ($0.01), /batch ($0.02)
+
+Agent/API callers must send:  X-PAYMENT: Bearer <token>
+  where token = HMAC-SHA256(MPP_SECRET_KEY, "<path>:<minute>")
+  or the raw MPP_SECRET_KEY value for simple demo access.
 """
 
 from __future__ import annotations
@@ -29,15 +35,26 @@ FREE_PATHS: set[str] = {
     "/redoc",
     "/openapi.json",
     "/feedback",
-    "/deidentify",
-    "/deidentify/file",
-    "/batch",
 }
 
 _SECRET = os.getenv("MPP_SECRET_KEY", "deid-dev-secret")
+_ENABLED = os.getenv("X402_ENABLED", "true").lower() != "false"
+
+
+def _is_browser(request: Request) -> bool:
+    """True for browser/UI requests — bypass payment so the hosted demo works."""
+    if "Mozilla/" in request.headers.get("user-agent", ""):
+        return True
+    origin = request.headers.get("origin", "")
+    referer = request.headers.get("referer", "")
+    for header in (origin, referer):
+        if header and any(h in header for h in ("onrender.com", "github.io", "localhost")):
+            return True
+    return False
 
 
 def _valid_payment(token: str, path: str) -> bool:
+    """Accept HMAC-SHA256(secret, path:minute_window) or raw secret for demos."""
     minute = str(int(time.time()) // 60)
     for window in (minute, str(int(minute) - 1)):
         expected = hmac.new(
@@ -54,14 +71,24 @@ def _valid_payment(token: str, path: str) -> bool:
 
 class X402Middleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        if not _ENABLED:
+            return await call_next(request)
+
         path = request.url.path
 
+        # Always-free paths and static assets
         if path in FREE_PATHS or path.startswith("/static"):
             return await call_next(request)
 
+        # Only gate POST endpoints in the price list
         if request.method != "POST" or path not in ENDPOINT_PRICES:
             return await call_next(request)
 
+        # Browser / UI requests bypass payment
+        if _is_browser(request):
+            return await call_next(request)
+
+        # Validate payment token
         auth = request.headers.get("X-PAYMENT") or request.headers.get("Authorization", "")
         token = auth.removeprefix("Bearer ").strip()
 
@@ -79,8 +106,9 @@ class X402Middleware(BaseHTTPMiddleware):
                 "price_usd": price,
                 "protocol": "x402",
                 "instructions": (
-                    f"Send X-PAYMENT: Bearer <token>. "
-                    "For demo access use X-PAYMENT: Bearer deid-dev-secret"
+                    f"Send X-PAYMENT: Bearer <token> where token = "
+                    f"HMAC-SHA256(MPP_SECRET_KEY, '{path}:<minute>'). "
+                    "Demo token: X-PAYMENT: Bearer deid-dev-secret"
                 ),
             },
             headers={
