@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install all python dependencies
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements-api.txt /app/
+RUN pip install --no-cache-dir -r requirements-api.txt
 
 # Force CPU-only torch to override any CUDA packages pulled by transformers
 RUN pip install --no-cache-dir torch==2.2.0+cpu --index-url https://download.pytorch.org/whl/cpu --force-reinstall
